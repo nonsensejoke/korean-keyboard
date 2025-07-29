@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>韩文输入测试</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 语言切换器 -->
+    <div class="language-selector">
+        <div class="language-buttons" id="languageButtons"></div>
+    </div>
+
+    <div class="container">
+        <h1>한글 입력 테스트</h1>
+        <div class="input-section">
+            <textarea id="koreanInput" placeholder="영문으로 타이핑하면 한글로 변환됩니다..."></textarea>
+        </div>
+        <div class="button-section">
+            <button id="copyBtn">복사</button>
+            <button id="clearBtn">지우기</button>
+        </div>
+        <div class="info">
+            <p>영문 키보드로 타이핑하면 자동으로 한글로 변환됩니다.</p>
+            <p>Shift를 눌러 더 많은 한글 문자를 입력할 수 있습니다.</p>
+        </div>
+        
+        <!-- 虚拟键盘区域 -->
+        <div class="virtual-keyboard-section">
+            <h3 class="keyboard-title">가상 키보드</h3>
+            <div class="keyboard-controls">
+                <label class="shift-toggle">
+                    <input type="checkbox" id="shiftToggle">
+                    <span class="shift-label">Shift</span>
+                </label>
+            </div>
+            <div class="virtual-keyboard" id="virtualKeyboard">
+                <!-- 键盘布局将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="virtual-keyboard.js"></script>
+    <script src="korean-input.js"></script>
+</body>
+</html>
