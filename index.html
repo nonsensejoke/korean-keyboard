@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>韩文输入测试</title>
+    <title>Korean Keyboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,6 +14,13 @@
 
     <div class="container">
         <h1>한글 입력 테스트</h1>
+        
+        <!-- 说明文字移动到这里 -->
+        <div class="info">
+            <p>영문 키보드로 타이핑하면 자동으로 한글로 변환됩니다.</p>
+            <p>Shift를 눌러 더 많은 한글 문자를 입력할 수 있습니다.</p>
+        </div>
+        
         <div class="input-section">
             <textarea id="koreanInput" placeholder="영문으로 타이핑하면 한글로 변환됩니다..."></textarea>
         </div>
@@ -21,20 +28,9 @@
             <button id="copyBtn">복사</button>
             <button id="clearBtn">지우기</button>
         </div>
-        <div class="info">
-            <p>영문 키보드로 타이핑하면 자동으로 한글로 변환됩니다.</p>
-            <p>Shift를 눌러 더 많은 한글 문자를 입력할 수 있습니다.</p>
-        </div>
         
-        <!-- 虚拟键盘区域 -->
+        <!-- 虚拟键盘区域 - 移除标题和控制 -->
         <div class="virtual-keyboard-section">
-            <h3 class="keyboard-title">가상 키보드</h3>
-            <div class="keyboard-controls">
-                <label class="shift-toggle">
-                    <input type="checkbox" id="shiftToggle">
-                    <span class="shift-label">Shift</span>
-                </label>
-            </div>
             <div class="virtual-keyboard" id="virtualKeyboard">
                 <!-- 键盘布局将通过JavaScript动态生成 -->
             </div>
@@ -44,5 +40,14 @@
     <script src="i18n.js"></script>
     <script src="virtual-keyboard.js"></script>
     <script src="korean-input.js"></script>
+
+    <footer class="site-footer">
+        <a href="https://github.com/nonsensejoke/korean-keyboard" target="_blank" rel="noopener noreferrer">
+            <svg class="github-logo" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.373 0 0 5.373 0 12C0 17.523 3.438 22.093 8.205 23.5C8.795 23.6 9.025 23.225 9.025 22.9C9.025 22.6 9.015 21.685 9.01 20.705C5.672 21.415 4.965 19.165 4.965 19.165C4.445 17.815 3.65 17.415 3.65 17.415C2.61 16.685 3.73 16.705 3.73 16.705C4.855 16.785 5.425 17.815 5.425 17.815C6.425 19.565 8.125 19.065 8.75 18.785C8.85 18.115 9.125 17.665 9.425 17.415C6.885 17.135 4.225 16.125 4.225 11.755C4.225 10.455 4.675 9.395 5.425 8.575C5.315 8.295 4.925 7.155 5.525 5.605C5.525 5.605 6.485 5.295 8.985 6.845C9.915 6.585 10.925 6.455 11.975 6.455C13.025 6.455 14.035 6.585 14.965 6.845C17.465 5.295 18.425 5.605 18.425 5.605C19.025 7.155 18.635 8.295 18.525 8.575C19.275 9.395 19.725 10.455 19.725 11.755C19.725 16.135 17.065 17.135 14.515 17.415C14.895 17.735 15.225 18.335 15.225 19.205C15.225 20.555 15.215 21.625 15.215 21.9C15.215 22.225 15.445 22.605 16.045 22.5C20.825 21.085 24 16.515 24 11C24 4.373 18.627 0 12 0Z" />
+            </svg>
+            <span>nonsensejoke/korean-keyboard</span>
+        </a>
+    </footer>
 </body>
 </html>

@@ -10,7 +10,9 @@ const i18n = {
         infoText1: 'Type with English keyboard and it will automatically convert to Korean.',
         infoText2: 'Hold Shift to input more Korean characters.',
         virtualKeyboardTitle: 'Virtual Keyboard',
-        shiftLabel: 'Shift'
+        shiftLabel: 'Shift',
+        keyboardModeText: 'Virtual Keyboard Mode',
+        spaceKeyLabel: 'Space'
     },
     
     // 中文简体
@@ -23,7 +25,9 @@ const i18n = {
         infoText1: '使用英文键盘输入，将自动转换为韩文。',
         infoText2: '按住Shift键可以输入更多韩文字符。',
         virtualKeyboardTitle: '虚拟键盘',
-        shiftLabel: 'Shift'
+        shiftLabel: 'Shift',
+        keyboardModeText: '虚拟键盘模式',
+        spaceKeyLabel: '空格'
     },
     
     // 中文繁体
@@ -36,7 +40,9 @@ const i18n = {
         infoText1: '使用英文鍵盤輸入，將自動轉換為韓文。',
         infoText2: '按住Shift鍵可以輸入更多韓文字符。',
         virtualKeyboardTitle: '虛擬鍵盤',
-        shiftLabel: 'Shift'
+        shiftLabel: 'Shift',
+        keyboardModeText: '虛擬鍵盤模式',
+        spaceKeyLabel: '空格'
     },
     
     // 韩文
@@ -49,7 +55,9 @@ const i18n = {
         infoText1: '영문 키보드로 타이핑하면 자동으로 한글로 변환됩니다.',
         infoText2: 'Shift를 눌러 더 많은 한글 문자를 입력할 수 있습니다.',
         virtualKeyboardTitle: '가상 키보드',
-        shiftLabel: 'Shift'
+        shiftLabel: 'Shift',
+        keyboardModeText: '가상 키보드 모드',
+        spaceKeyLabel: '스페이스'
     }
 };
 

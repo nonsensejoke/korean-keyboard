@@ -191,6 +191,42 @@ class KoreanInput {
             return currentText.slice(0, -1);
         }
     }
+    
+    // 程序化处理输入（用于移动端虚拟键盘）
+    processInputProgrammatically(key, isShift, currentText, cursorPosition) {
+        const char = this.getCharacter(key, isShift);
+        if (!char) return null;
+        
+        const result = this.processInput(char);
+        
+        const textBefore = currentText.substring(0, cursorPosition);
+        const textAfter = currentText.substring(cursorPosition);
+        
+        // 检查是否需要替换最后一个字符（韩文组合逻辑）
+        let newText;
+        let replacedLastChar = false;
+        
+        if (textBefore.length > 0) {
+            const lastChar = textBefore[textBefore.length - 1];
+            const decomposed = this.decomposeHangul(lastChar);
+            if (decomposed || this.isConsonant(lastChar) || this.isVowel(lastChar)) {
+                newText = textBefore.slice(0, -1) + result + textAfter;
+                replacedLastChar = true;
+            } else {
+                newText = textBefore + result + textAfter;
+            }
+        } else {
+            newText = result + textAfter;
+        }
+        
+        // 计算新的光标位置
+        const newCursorPos = cursorPosition + result.length - (replacedLastChar ? 1 : 0);
+        
+        return {
+            text: newText,
+            cursorPosition: newCursorPos
+        };
+    }
 }
 
 // DOM加载完成后初始化
@@ -206,9 +242,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化界面语言
     window.languageManager.updateUI();
+    
+    // 修复初始化时序问题：确保虚拟键盘的多语言文字正确显示
+    if (window.virtualKeyboard) {
+        // 更新功能键文字（修复空格键显示问题）
+        window.virtualKeyboard.updateFunctionKeysText();
+        
+        // 如果是移动设备且当前处于虚拟键盘模式，更新状态指示器
+        if (window.virtualKeyboard.isMobileDevice && window.virtualKeyboard.isVirtualKeyboardMode) {
+            window.virtualKeyboard.updateKeyboardStateIndicator(false);
+        }
+    }
 
     // 键盘事件监听
     textarea.addEventListener('keydown', function(e) {
+        // 检查输入来源，如果是虚拟键盘输入且在移动设备上，则忽略
+        if (window.virtualKeyboard && window.virtualKeyboard.inputSource === 'virtual' && window.virtualKeyboard.isMobileDevice) {
+            return;
+        }
+        
         if (e.key === 'Backspace') {
             e.preventDefault();
             const newText = koreanInput.handleBackspace(this.value);
@@ -248,6 +300,76 @@ document.addEventListener('DOMContentLoaded', function() {
             this.setSelectionRange(cursorPos + result.length, cursorPos + result.length);
         }
     });
+    
+    // 添加触摸和焦点事件监听，区分输入来源
+    textarea.addEventListener('touchstart', function(e) {
+        if (window.virtualKeyboard) {
+            window.virtualKeyboard.inputSource = 'touch';
+            // 同步虚拟光标位置
+            setTimeout(() => {
+                window.virtualKeyboard.syncVirtualCursor();
+            }, 50);
+        }
+    });
+    
+    textarea.addEventListener('mousedown', function(e) {
+        if (window.virtualKeyboard) {
+            window.virtualKeyboard.inputSource = 'mouse';
+            // 同步虚拟光标位置
+            setTimeout(() => {
+                window.virtualKeyboard.syncVirtualCursor();
+            }, 50);
+        }
+    });
+    
+    textarea.addEventListener('focus', function(e) {
+        if (window.virtualKeyboard) {
+            // 如果是虚拟键盘操作导致的焦点，立即失焦
+            if (window.virtualKeyboard.isMobileDevice && window.virtualKeyboard.isVirtualKeyboardMode) {
+                e.preventDefault();
+                this.blur();
+                return false;
+            }
+            
+            // 如果是移动设备且输入源不是虚拟键盘，允许系统键盘弹出
+            if (window.virtualKeyboard.isMobileDevice && 
+                window.virtualKeyboard.inputSource !== 'virtual') {
+                // 正常的焦点行为，允许系统键盘弹出
+                window.virtualKeyboard.syncVirtualCursor();
+            }
+        }
+        koreanInput.reset();
+    });
+    
+    // 监听自定义虚拟输入事件
+    textarea.addEventListener('virtualinput', function(e) {
+        // 处理虚拟输入事件，这里可以添加额外的处理逻辑
+        // 例如更新其他UI元素等
+    });
+    
+    // 监听光标位置变化（selectionchange事件）
+    document.addEventListener('selectionchange', function() {
+        if (window.virtualKeyboard && document.activeElement === textarea) {
+            // 用户直接在textarea中移动了光标，同步虚拟光标
+            if (!window.virtualKeyboard.isVirtualKeyboardMode) {
+                window.virtualKeyboard.syncVirtualCursor();
+            }
+        }
+    });
+    
+    // 监听文本选择变化（兼容性更好的方式）
+    textarea.addEventListener('selectionchange', function() {
+        if (window.virtualKeyboard && !window.virtualKeyboard.isVirtualKeyboardMode) {
+            window.virtualKeyboard.syncVirtualCursor();
+        }
+    });
+    
+    // 监听键盘事件同步光标（用户直接使用物理键盘时）
+    textarea.addEventListener('keyup', function(e) {
+        if (window.virtualKeyboard && !window.virtualKeyboard.isVirtualKeyboardMode) {
+            window.virtualKeyboard.syncVirtualCursor();
+        }
+    });
 
     // 复制功能
     copyBtn.addEventListener('click', function() {
@@ -270,8 +392,14 @@ document.addEventListener('DOMContentLoaded', function() {
         textarea.focus();
     });
 
-    // 点击事件重置状态
+    // 点击事件重置状态和同步光标
     textarea.addEventListener('click', function() {
         koreanInput.reset();
+        // 设置输入源为直接输入
+        if (window.virtualKeyboard) {
+            window.virtualKeyboard.inputSource = 'direct';
+            // 同步虚拟光标位置
+            window.virtualKeyboard.syncVirtualCursor();
+        }
     });
 });

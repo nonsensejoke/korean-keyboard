@@ -20,7 +20,7 @@ body {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    padding: 40px;
+    padding: 30px;
     max-width: 800px;
     width: 100%;
     text-align: center;
@@ -29,14 +29,30 @@ body {
 
 h1 {
     color: #333;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
     font-size: 2.5em;
     font-weight: 300;
     letter-spacing: -1px;
 }
 
+/* 说明文字样式优化 */
+.info {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.info p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.4;
+}
+
 .input-section {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 #koreanInput {
@@ -69,7 +85,12 @@ h1 {
     display: flex;
     gap: 15px;
     justify-content: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+}
+
+/* 虚拟键盘区域间距优化 */
+.virtual-keyboard-section {
+    margin-top: 15px;
 }
 
 button {
@@ -260,56 +281,16 @@ button:active {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+    padding: 20px;
     max-width: 800px;
     width: 100%;
     text-align: center;
-}
-
-.keyboard-title {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-    font-weight: 400;
-}
-
-.keyboard-controls {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.shift-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 8px 16px;
-    background: #f8f9fa;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-}
-
-.shift-toggle:hover {
-    background: #e9ecef;
-}
-
-.shift-toggle input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    cursor: pointer;
-}
-
-.shift-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    user-select: none;
+    margin-top: 15px;
 }
 
 /* 虚拟键盘样式 */
 .virtual-keyboard {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -318,6 +299,64 @@ button:active {
     background: #f8f9fa;
     border-radius: 15px;
     border: 2px solid #e9ecef;
+}
+
+/* 键盘包装器 */
+.keyboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 内嵌的键盘标题 */
+.embedded-keyboard-title {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* 内嵌的Shift控制 */
+.embedded-shift-control {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.embedded-shift-control .shift-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #f1f3f4;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.embedded-shift-control .shift-toggle:hover {
+    background: #e5e7eb;
+}
+
+.embedded-shift-control input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.embedded-shift-control .shift-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #374151;
 }
 
 .keyboard-row {
@@ -388,6 +427,53 @@ button:active {
 .keyboard-key.key-active .english-char,
 .keyboard-key.key-active .korean-char {
     color: white;
+}
+
+/* 功能键样式 */
+.function-row {
+    margin-top: 5px;
+}
+
+.keyboard-key.function-key {
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border: 1px solid #adb5bd;
+    color: #495057;
+    font-weight: 600;
+}
+
+.keyboard-key.function-key:hover {
+    background: linear-gradient(145deg, #e9ecef, #dee2e6);
+}
+
+.keyboard-key.space-key {
+    width: 120px;
+    margin: 0 5px;
+}
+
+.keyboard-key.backspace-key {
+    background: linear-gradient(145deg, #dc3545, #c82333);
+    color: white;
+}
+
+.keyboard-key.backspace-key:hover {
+    background: linear-gradient(145deg, #c82333, #bd2130);
+}
+
+.keyboard-key.arrow-key {
+    background: linear-gradient(145deg, #28a745, #218838);
+    color: white;
+    width: 60px;
+}
+
+.keyboard-key.arrow-key:hover {
+    background: linear-gradient(145deg, #218838, #1e7e34);
+}
+
+.function-key-content {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1;
 }
 
 /* Shift模式的键盘样式 */
@@ -511,4 +597,135 @@ button:active {
     .korean-char {
         font-size: 12px;
     }
+    
+    /* 移动端触摸反馈 */
+    .keyboard-key:active {
+        background: linear-gradient(145deg, #e0e0e0, #c0c0c0);
+        transform: translateY(1px);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* 移动端特殊按键高亮 */
+    .keyboard-key.key-active {
+        background: linear-gradient(145deg, #667eea, #764ba2) !important;
+        color: white !important;
+        transform: scale(0.95) !important;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4) !important;
+    }
+    
+    /* 移动端功能键激活状态 */
+    .keyboard-key.function-key.key-active {
+        transform: scale(0.9) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .keyboard-key.backspace-key.key-active {
+        background: linear-gradient(145deg, #bd2130, #a71e2a) !important;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4) !important;
+    }
+    
+    .keyboard-key.arrow-key.key-active {
+        background: linear-gradient(145deg, #1e7e34, #155724) !important;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4) !important;
+    }
+    
+    /* 改善移动端文本框体验 */
+    #koreanInput {
+        font-size: 16px; /* 防止iOS缩放 */
+        padding: 15px;
+    }
+    
+    /* 移动端虚拟键盘容器优化 */
+    .virtual-keyboard-section {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 15px;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+        margin: 20px -40px -40px -40px;
+    }
+    
+    /* 添加功能键行间距 */
+    .function-row {
+        justify-content: center;
+        gap: 8px;
+    }
+}
+
+/* 虚拟光标指示器 */
+.virtual-cursor-indicator {
+    position: absolute;
+    width: 2px;
+    background-color: #333;
+    border-radius: 1px;
+    z-index: 1000;
+    pointer-events: none;
+    transition: all 0.1s ease;
+}
+
+.virtual-cursor-indicator.blinking {
+    animation: cursorBlink 1s infinite;
+}
+
+@keyframes cursorBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* 键盘状态指示器 */
+.keyboard-state-indicator {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 10000;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+.keyboard-state-indicator.active {
+    display: block;
+    background: rgba(102, 126, 234, 0.9);
+}
+
+.keyboard-state-indicator.warning {
+    display: block;
+    background: rgba(255, 107, 107, 0.9);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.site-footer {
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: auto;
+}
+
+.site-footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.site-footer a:hover {
+    color: white;
+}
+
+.github-logo {
+    fill: currentColor;
 }
