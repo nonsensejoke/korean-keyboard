@@ -12,7 +12,34 @@ const i18n = {
         virtualKeyboardTitle: 'Virtual Keyboard',
         shiftLabel: 'Shift',
         keyboardModeText: 'Virtual Keyboard Mode',
-        spaceKeyLabel: 'Space'
+        spaceKeyLabel: 'Space',
+        saveBtn: 'Save Text',
+        fontSmallerBtn: '-',
+        fontLargerBtn: '+',
+        fontSmallerTitle: 'Smaller Text',
+        fontLargerTitle: 'Larger Text',
+        noTextToSave: 'No text to save!'
+    },
+    
+    // 日语
+    'ja-JP': {
+        title: '韓国語入力テスト',
+        placeholder: '英語でタイプすると韓国語に変換されます...',
+        copyBtn: 'コピー',
+        clearBtn: 'クリア',
+        copiedMsg: 'コピーしました！',
+        infoText1: '英語のキーボードで入力すると、自動的に韓国語に変換されます。',
+        infoText2: 'Shiftキーを押すと、より多くの韓国語文字が入力できます。',
+        virtualKeyboardTitle: '仮想キーボード',
+        shiftLabel: 'シフト',
+        keyboardModeText: '仮想キーボードモード',
+        spaceKeyLabel: 'スペース',
+        saveBtn: 'テキストを保存',
+        fontSmallerBtn: '-',
+        fontLargerBtn: '+',
+        fontSmallerTitle: '文字を小さく',
+        fontLargerTitle: '文字を大きく',
+        noTextToSave: '保存するテキストがありません！'
     },
     
     // 中文简体
@@ -27,7 +54,13 @@ const i18n = {
         virtualKeyboardTitle: '虚拟键盘',
         shiftLabel: 'Shift',
         keyboardModeText: '虚拟键盘模式',
-        spaceKeyLabel: '空格'
+        spaceKeyLabel: '空格',
+        saveBtn: '保存文本',
+        fontSmallerBtn: '-',
+        fontLargerBtn: '+',
+        fontSmallerTitle: '缩小文字',
+        fontLargerTitle: '放大文字',
+        noTextToSave: '没有文本可保存！'
     },
     
     // 中文繁体
@@ -42,7 +75,13 @@ const i18n = {
         virtualKeyboardTitle: '虛擬鍵盤',
         shiftLabel: 'Shift',
         keyboardModeText: '虛擬鍵盤模式',
-        spaceKeyLabel: '空格'
+        spaceKeyLabel: '空格',
+        saveBtn: '保存文本',
+        fontSmallerBtn: '-',
+        fontLargerBtn: '+',
+        fontSmallerTitle: '縮小文字',
+        fontLargerTitle: '放大文字',
+        noTextToSave: '沒有文本可保存！'
     },
     
     // 韩文
@@ -57,7 +96,13 @@ const i18n = {
         virtualKeyboardTitle: '가상 키보드',
         shiftLabel: 'Shift',
         keyboardModeText: '가상 키보드 모드',
-        spaceKeyLabel: '스페이스'
+        spaceKeyLabel: '스페이스',
+        saveBtn: '텍스트 저장',
+        fontSmallerBtn: '-',
+        fontLargerBtn: '+',
+        fontSmallerTitle: '글자 작게',
+        fontLargerTitle: '글자 크게',
+        noTextToSave: '저장할 텍스트가 없습니다!'
     }
 };
 
@@ -67,8 +112,9 @@ class LanguageManager {
         this.currentLanguage = localStorage.getItem('selectedLanguage') || 'en-US';
         this.supportedLanguages = [
             { code: 'en-US', name: 'English', flag: '🇺🇸' },
-            { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
+            { code: 'ja-JP', name: '日本語', flag: '🇯🇵' },
             { code: 'zh-TW', name: '繁體中文', flag: '🇹🇼' },
+            { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
             { code: 'ko-KR', name: '한국어', flag: '🇰🇷' }
         ];
     }
@@ -104,8 +150,21 @@ class LanguageManager {
         // 更新按钮文本
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const fontSmallerBtn = document.getElementById('fontSmallerBtn');
+        const fontLargerBtn = document.getElementById('fontLargerBtn');
+        
         if (copyBtn) copyBtn.textContent = this.getText('copyBtn');
         if (clearBtn) clearBtn.textContent = this.getText('clearBtn');
+        if (saveBtn) saveBtn.textContent = this.getText('saveBtn');
+        if (fontSmallerBtn) {
+            fontSmallerBtn.textContent = this.getText('fontSmallerBtn');
+            fontSmallerBtn.title = this.getText('fontSmallerTitle');
+        }
+        if (fontLargerBtn) {
+            fontLargerBtn.textContent = this.getText('fontLargerBtn');
+            fontLargerBtn.title = this.getText('fontLargerTitle');
+        }
 
         // 更新信息文本
         const infoText1 = document.querySelector('.info p:first-child');

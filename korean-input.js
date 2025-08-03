@@ -1,5 +1,8 @@
 class KoreanInput {
     constructor() {
+        // 字体大小管理
+        this.fontSize = 18;  // 默认字体大小
+        
         // 普通状态的键盘映射
         this.normalMap = {
             // 辅音 (초성/종성)
@@ -41,11 +44,38 @@ class KoreanInput {
         // 终声 (28个，包含空字符)
         this.jongsungList = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 
+        // 完整的韩文组合引擎数据结构（从参考项目移植）
+        this.initial = [12593, 12594, 12596, 12599, 12600, 12601, 12609, 12610, 12611, 12613, 12614, 12615, 12616, 12617, 12618, 12619, 12620, 12621, 12622];
+        this.finale = [0, 12593, 12594, 12595, 12596, 12597, 12598, 12599, 12601, 12602, 12603, 12604, 12605, 12606, 12607, 12608, 12609, 12610, 12612, 12613, 12614, 12615, 12616, 12618, 12619, 12620, 12621, 12622];
+        this.dMedial = [0, 0, 0, 0, 0, 0, 0, 0, 0, 800, 801, 820, 0, 0, 1304, 1305, 1320, 0, 0, 1820];
+        this.dFinale = [0, 0, 0, 119, 0, 422, 427, 0, 0, 801, 816, 817, 819, 825, 826, 827, 0, 0, 1719, 0, 1919];
+        
+        // Unicode常量
+        this.SBase = 44032;
+        this.LBase = 4352;
+        this.VBase = 12623;
+        this.TBase = 4519;
+        this.LCount = 19;
+        this.VCount = 21;
+        this.TCount = 28;
+        this.NCount = 588;
+        this.SCount = 11172;
+
         // 当前正在组合的字符状态
         this.currentChosung = '';
         this.currentJungsung = '';
         this.currentJongsung = '';
         this.buffer = '';
+    }
+
+    // 查找数组中元素的索引（工具函数）
+    indexOf(array, value) {
+        for (let i = 0; i < array.length; i++) {
+            if (array[i] === value) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     // 获取字符映射
@@ -66,47 +96,214 @@ class KoreanInput {
         return this.jungsungList.includes(char);
     }
 
-    // 组合韩文字符
-    combineHangul(chosung, jungsung, jongsung = '') {
-        const chosungIndex = this.chosungList.indexOf(chosung);
-        const jungsungIndex = this.jungsungList.indexOf(jungsung);
-        const jongsungIndex = this.jongsungList.indexOf(jongsung);
-
-        if (chosungIndex === -1 || jungsungIndex === -1 || jongsungIndex === -1) {
-            return null;
+    // 完整的韩文组合算法（从参考项目移植并优化）
+    composeHangul(inputString) {
+        const length = inputString.length;
+        if (length === 0) {
+            return "";
         }
-
-        const unicode = this.HANGUL_BASE + (chosungIndex * 21 * 28) + (jungsungIndex * 28) + jongsungIndex;
-        return String.fromCharCode(unicode);
+        
+        let currentCharCode = inputString.charCodeAt(0);
+        let result = String.fromCharCode(currentCharCode);
+        
+        for (let i = 1; i < length; i++) {
+            const nextCharCode = inputString.charCodeAt(i);
+            
+            const initialIndex = this.indexOf(this.initial, currentCharCode);
+            
+            // 初声 + 中声 → 音节
+            if (initialIndex !== -1) {
+                const vowelOffset = nextCharCode - this.VBase;
+                if (0 <= vowelOffset && vowelOffset < this.VCount) {
+                    currentCharCode = this.SBase + (initialIndex * this.VCount + vowelOffset) * this.TCount;
+                    result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode);
+                    continue;
+                }
+            }
+            
+            // 元音 + 元音 → 复合元音
+            const currentVowelOffset = currentCharCode - this.VBase;
+            const nextVowelOffset = nextCharCode - this.VBase;
+            if (0 <= currentVowelOffset && currentVowelOffset < this.VCount && 
+                0 <= nextVowelOffset && nextVowelOffset < this.VCount) {
+                const dMedialIndex = this.indexOf(this.dMedial, (currentVowelOffset * 100) + nextVowelOffset);
+                if (dMedialIndex > 0) {
+                    currentCharCode = this.VBase + dMedialIndex;
+                    result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode);
+                    continue;
+                }
+            }
+            
+            const syllableOffset = currentCharCode - this.SBase;
+            
+            // 音节 + 终声 → 完整音节
+            if (0 <= syllableOffset && syllableOffset < 11145 && (syllableOffset % this.TCount) === 0) {
+                const finaleIndex = this.indexOf(this.finale, nextCharCode);
+                if (finaleIndex !== -1) {
+                    currentCharCode += finaleIndex;
+                    result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode);
+                    continue;
+                }
+                
+                // 处理复合中声
+                const vowelIndex = Math.floor((syllableOffset % this.NCount) / this.TCount);
+                const dMedialIndex = this.indexOf(this.dMedial, (vowelIndex * 100) + (nextCharCode - this.VBase));
+                if (dMedialIndex > 0) {
+                    currentCharCode += (dMedialIndex - vowelIndex) * this.TCount;
+                    result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode);
+                    continue;
+                }
+            }
+            
+            // 完整音节 + 元音 → 终声分离 + 新音节 (关键修复!)
+            if (0 <= syllableOffset && syllableOffset < 11172 && (syllableOffset % this.TCount) !== 0) {
+                const finaleIndex = syllableOffset % this.TCount;
+                const vowelOffset = nextCharCode - this.VBase;
+                
+                if (0 <= vowelOffset && vowelOffset < this.VCount) {
+                    const newInitialIndex = this.indexOf(this.initial, this.finale[finaleIndex]);
+                    if (0 <= newInitialIndex && newInitialIndex < this.LCount) {
+                        // 移除终声，创建新音节
+                        result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode - finaleIndex);
+                        currentCharCode = this.SBase + (newInitialIndex * this.VCount + vowelOffset) * this.TCount;
+                        result = result + String.fromCharCode(currentCharCode);
+                        continue;
+                    }
+                    
+                    // 处理复合终声分解
+                    if (finaleIndex < this.dFinale.length && this.dFinale[finaleIndex] !== 0) {
+                        result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode - finaleIndex + Math.floor(this.dFinale[finaleIndex] / 100));
+                        currentCharCode = this.SBase + (this.indexOf(this.initial, this.finale[(this.dFinale[finaleIndex] % 100)]) * this.VCount + vowelOffset) * this.TCount;
+                        result = result + String.fromCharCode(currentCharCode);
+                        continue;
+                    }
+                }
+                
+                // 处理复合终声
+                const dFinaleIndex = this.indexOf(this.dFinale, (finaleIndex * 100) + this.indexOf(this.finale, nextCharCode));
+                if (dFinaleIndex > 0) {
+                    currentCharCode = currentCharCode + dFinaleIndex - finaleIndex;
+                    result = result.slice(0, result.length - 1) + String.fromCharCode(currentCharCode);
+                    continue;
+                }
+            }
+            
+            // 无法组合，添加新字符
+            currentCharCode = nextCharCode;
+            result = result + String.fromCharCode(nextCharCode);
+        }
+        
+        return result;
     }
 
-    // 分解韩文字符
-    decomposeHangul(char) {
-        const unicode = char.charCodeAt(0);
-        if (unicode < this.HANGUL_BASE || unicode > this.HANGUL_BASE + (19 * 21 * 28)) {
-            return null;
+    // 分解韩文字符（按照参考项目实现）
+    decomposeHangul(inputString) {
+        const length = inputString.length;
+        let result = "";
+        
+        for (let i = 0; i < length; i++) {
+            const charCode = inputString.charCodeAt(i);
+            const syllableOffset = charCode - this.SBase;
+            
+            // 检查是否为韩文音节
+            if (syllableOffset < 0 || syllableOffset >= this.SCount) {
+                result += String.fromCharCode(charCode);
+                continue;
+            }
+            
+            // 分解音节
+            const initialIndex = Math.floor(syllableOffset / this.NCount);
+            const vowelCode = this.VBase + Math.floor((syllableOffset % this.NCount) / this.TCount);
+            const finaleCode = this.finale[syllableOffset % this.TCount];
+            
+            result += String.fromCharCode(this.initial[initialIndex], vowelCode);
+            if (finaleCode !== 0) {
+                result += String.fromCharCode(finaleCode);
+            }
         }
-
-        const index = unicode - this.HANGUL_BASE;
-        const chosungIndex = Math.floor(index / (21 * 28));
-        const jungsungIndex = Math.floor((index % (21 * 28)) / 28);
-        const jongsungIndex = index % 28;
-
-        return {
-            chosung: this.chosungList[chosungIndex],
-            jungsung: this.jungsungList[jungsungIndex],
-            jongsung: this.jongsungList[jongsungIndex]
-        };
+        
+        return result;
     }
 
-    // 处理输入
+    // 处理输入 - 简化版本，直接返回字符用于smartInsert处理
     processInput(char) {
-        if (this.isConsonant(char)) {
-            return this.processConsonant(char);
-        } else if (this.isVowel(char)) {
-            return this.processVowel(char);
-        }
+        // 简化：直接返回字符，让smartInsert处理所有组合逻辑
         return char;
+    }
+
+    // 检测韩文字符是否完成（用于历史保存时机判断）
+    isHangulCharComplete(char) {
+        if (!char) return false;
+        
+        const charCode = char.charCodeAt(0);
+        const syllableOffset = charCode - this.SBase;
+        
+        // 检查是否为完整的韩文音节（不是单独的字母组件）
+        if (0 <= syllableOffset && syllableOffset < this.SCount) {
+            return true; // 是完整的韩文音节
+        }
+        
+        return false; // 不是完整的韩文音节或不是韩文字符
+    }
+    
+    // 检测从旧文本到新文本是否有韩文字符完成
+    detectHangulCompletion(oldText, newText, cursorPosition) {
+        // 检查光标位置附近是否有新完成的韩文字符
+        if (cursorPosition <= 0) return false;
+        
+        const newChar = newText[cursorPosition - 1];
+        const oldChar = oldText[cursorPosition - 1] || '';
+        
+        // 如果新字符是完整韩文字符，而旧字符不是，则表示有字符完成
+        if (this.isHangulCharComplete(newChar) && !this.isHangulCharComplete(oldChar)) {
+            return true;
+        }
+        
+        // 检查是否有韩文字符从不完整变为完整
+        if (newChar !== oldChar && this.isHangulCharComplete(newChar)) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    // 智能插入函数 - 改进版本，更好地处理韩文组合，增加完成检测
+    smartInsert(currentText, cursorStart, cursorEnd, newChar) {
+        // 1. 构建新文本：插入新字符
+        const textBefore = currentText.substring(0, cursorStart);
+        const textAfter = currentText.substring(cursorEnd);
+        const tempText = textBefore + newChar + textAfter;
+        const tempCursorPos = cursorStart + newChar.length;
+        
+        // 2. 韩文组合处理：尝试不同长度的字符序列
+        for (let testLength = Math.min(4, tempCursorPos); testLength >= 2; testLength--) {
+            const testChars = tempText.substring(tempCursorPos - testLength, tempCursorPos);
+            const composed = this.composeHangul(testChars);
+            
+            // 3. 如果组合成功（长度减少，或者内容有意义变化），则替换
+            if (composed.length < testChars.length || composed !== testChars) {
+                const newText = tempText.substring(0, tempCursorPos - testLength) + composed + tempText.substring(tempCursorPos);
+                const newCursorPos = tempCursorPos - testLength + composed.length;
+                
+                // 4. 检测韩文字符是否完成（用于历史保存）
+                const hangulCompleted = this.detectHangulCompletion(currentText, newText, newCursorPos);
+                
+                return {
+                    text: newText,
+                    cursorPosition: newCursorPos,
+                    hangulCompleted: hangulCompleted
+                };
+            }
+        }
+        
+        // 5. 无法组合，返回临时文本，检查是否有韩文完成
+        const hangulCompleted = this.detectHangulCompletion(currentText, tempText, tempCursorPos);
+        
+        return {
+            text: tempText,
+            cursorPosition: tempCursorPos,
+            hangulCompleted: hangulCompleted
+        };
     }
 
     // 处理辅音输入
@@ -170,26 +367,55 @@ class KoreanInput {
         this.currentJongsung = '';
     }
 
-    // 处理退格
+    // 从单个韩文字符恢复输入状态
+    restoreStateFromCharacter(char) {
+        if (!char) {
+            this.reset();
+            return;
+        }
+        
+        const decomposed = this.decomposeHangul(char);
+        if (decomposed) {
+            // 是完整的韩文字符，恢复组合状态
+            this.currentChosung = decomposed.chosung;
+            this.currentJungsung = decomposed.jungsung;
+            this.currentJongsung = decomposed.jongsung;
+        } else if (this.isConsonant(char)) {
+            // 是单独的辅音，设置为初声
+            this.currentChosung = char;
+            this.currentJungsung = '';
+            this.currentJongsung = '';
+        } else if (this.isVowel(char)) {
+            // 是单独的元音，这种情况不应该出现在正常的韩文输入中
+            // 重置状态
+            this.reset();
+        } else {
+            // 不是韩文字符，重置状态
+            this.reset();
+        }
+    }
+
+    // 处理退格 - 使用新的decomposeHangul实现
     handleBackspace(currentText) {
         if (currentText.length === 0) return '';
         
         const lastChar = currentText[currentText.length - 1];
         const decomposed = this.decomposeHangul(lastChar);
         
-        if (decomposed) {
-            // 是完整的韩文字符，进行分解
-            if (decomposed.jongsung) {
-                // 有终声，删除终声
-                return currentText.slice(0, -1) + this.combineHangul(decomposed.chosung, decomposed.jungsung);
-            } else {
-                // 没有终声，删除中声
-                return currentText.slice(0, -1) + decomposed.chosung;
+        // 检查是否为韩文字符（通过分解结果长度判断）
+        if (decomposed.length > 1) {
+            // 是韩文字符，按照参考项目的逻辑处理
+            const decomposedArray = Array.from(decomposed);
+            if (decomposedArray.length > 1) {
+                // 删除最后一个字符部件，重新组合
+                const remaining = decomposedArray.slice(0, -1).join('');
+                const recomposed = this.composeHangul(remaining);
+                return currentText.slice(0, -1) + recomposed;
             }
-        } else {
-            // 不是完整韩文字符，直接删除
-            return currentText.slice(0, -1);
         }
+        
+        // 不是韩文字符或无法分解，直接删除
+        return currentText.slice(0, -1);
     }
     
     // 程序化处理输入（用于移动端虚拟键盘）
@@ -197,35 +423,117 @@ class KoreanInput {
         const char = this.getCharacter(key, isShift);
         if (!char) return null;
         
-        const result = this.processInput(char);
-        
-        const textBefore = currentText.substring(0, cursorPosition);
-        const textAfter = currentText.substring(cursorPosition);
-        
-        // 检查是否需要替换最后一个字符（韩文组合逻辑）
-        let newText;
-        let replacedLastChar = false;
-        
-        if (textBefore.length > 0) {
-            const lastChar = textBefore[textBefore.length - 1];
-            const decomposed = this.decomposeHangul(lastChar);
-            if (decomposed || this.isConsonant(lastChar) || this.isVowel(lastChar)) {
-                newText = textBefore.slice(0, -1) + result + textAfter;
-                replacedLastChar = true;
-            } else {
-                newText = textBefore + result + textAfter;
-            }
-        } else {
-            newText = result + textAfter;
+        // 使用smartInsert函数处理输入
+        return this.smartInsert(currentText, cursorPosition, cursorPosition, char);
+    }
+    
+    // === 新增功能：保存文本 ===
+    
+    // 保存文本为文件
+    saveTextAsFile(text) {
+        if (!text.trim()) {
+            alert(window.languageManager ? window.languageManager.getText('noTextToSave') || 'No text to save!' : 'No text to save!');
+            return;
         }
         
-        // 计算新的光标位置
-        const newCursorPos = cursorPosition + result.length - (replacedLastChar ? 1 : 0);
+        try {
+            // 创建Blob对象
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            
+            // 创建下载链接
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // 生成文件名（包含时间戳）
+            const now = new Date();
+            const timestamp = now.getFullYear() + 
+                            String(now.getMonth() + 1).padStart(2, '0') + 
+                            String(now.getDate()).padStart(2, '0') + '-' +
+                            String(now.getHours()).padStart(2, '0') + 
+                            String(now.getMinutes()).padStart(2, '0') + 
+                            String(now.getSeconds()).padStart(2, '0');
+            
+            link.download = `korean-text-${timestamp}.txt`;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 清理URL对象
+            URL.revokeObjectURL(url);
+            
+        } catch (e) {
+            console.error('Failed to save file:', e);
+            alert('Failed to save file. Please try again.');
+        }
+    }
+    
+    // === 新增功能：字体大小调整 ===
+    
+    // 简单的设置保存
+    saveSettings() {
+        try {
+            const data = {
+                fontSize: this.fontSize
+            };
+            localStorage.setItem('korean-input-data', JSON.stringify(data));
+        } catch (e) {
+            console.warn('Failed to save settings to localStorage:', e);
+        }
+    }
+    
+    // 从localStorage加载设置
+    loadSettings() {
+        const savedData = localStorage.getItem('korean-input-data');
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                if (data.fontSize) {
+                    this.fontSize = data.fontSize;
+                }
+            } catch (e) {
+                console.warn('Failed to load settings from localStorage:', e);
+            }
+        }
+    }
+    
+    // 获取当前字体大小
+    getFontSize() {
+        return this.fontSize;
+    }
+    
+    // 设置字体大小
+    setFontSize(size) {
+        this.fontSize = Math.max(12, Math.min(36, size)); // 限制在12-36px之间
         
-        return {
-            text: newText,
-            cursorPosition: newCursorPos
-        };
+        const textarea = document.getElementById('koreanInput');
+        if (textarea) {
+            textarea.style.fontSize = this.fontSize + 'px';
+        }
+        
+        this.saveSettings(); // 保存字体大小设置
+        return this.fontSize;
+    }
+    
+    // 增大字体
+    increaseFontSize() {
+        return this.setFontSize(this.fontSize + 2);
+    }
+    
+    // 减小字体
+    decreaseFontSize() {
+        return this.setFontSize(this.fontSize - 2);
+    }
+    
+    // 初始化字体大小
+    initializeFontSize() {
+        this.loadSettings(); // 加载保存的设置
+        const textarea = document.getElementById('koreanInput');
+        if (textarea) {
+            textarea.style.fontSize = this.fontSize + 'px';
+        }
     }
 }
 
@@ -235,6 +543,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const textarea = document.getElementById('koreanInput');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const fontSmallerBtn = document.getElementById('fontSmallerBtn');
+    const fontLargerBtn = document.getElementById('fontLargerBtn');
+
+    // 初始化字体大小
+    koreanInput.initializeFontSize();
 
     // 初始化虚拟键盘和语言切换器
     window.virtualKeyboard = new VirtualKeyboard(koreanInput);
@@ -263,13 +577,77 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (e.key === 'Backspace') {
             e.preventDefault();
-            const newText = koreanInput.handleBackspace(this.value);
-            this.value = newText;
-            koreanInput.reset();
+            
+            // 获取光标位置信息
+            const cursorStart = this.selectionStart;
+            const cursorEnd = this.selectionEnd;
+            
+            if (cursorStart === cursorEnd) {
+                // 普通删除：删除光标前的一个字符
+                if (cursorStart > 0) {
+                    const textBefore = this.value.substring(0, cursorStart);
+                    const textAfter = this.value.substring(cursorStart);
+                    
+                    // 对光标前的文本应用韩文智能退格逻辑
+                    const newTextBefore = koreanInput.handleBackspace(textBefore);
+                    const newText = newTextBefore + textAfter;
+                    
+                    this.value = newText;
+                    
+                    // 设置新的光标位置
+                    const newCursorPos = newTextBefore.length;
+                    this.setSelectionRange(newCursorPos, newCursorPos);
+                    
+                    // 基于光标位置智能恢复韩文输入状态
+                    if (newCursorPos > 0) {
+                        const charBeforeCursor = newText[newCursorPos - 1];
+                        koreanInput.restoreStateFromCharacter(charBeforeCursor);
+                    } else {
+                        koreanInput.reset();
+                    }
+                }
+            } else {
+                // 选区删除：删除选中的文本
+                const textBefore = this.value.substring(0, cursorStart);
+                const textAfter = this.value.substring(cursorEnd);
+                const newText = textBefore + textAfter;
+                
+                this.value = newText;
+                this.setSelectionRange(cursorStart, cursorStart);
+                
+                // 基于光标位置智能恢复韩文输入状态
+                if (cursorStart > 0) {
+                    const charBeforeCursor = newText[cursorStart - 1];
+                    koreanInput.restoreStateFromCharacter(charBeforeCursor);
+                } else {
+                    koreanInput.reset();
+                }
+            }
+            
+            // 注意：这里不再调用 koreanInput.reset()，因为状态已经在上面智能恢复了
             return;
         }
 
-        // 忽略特殊键
+        if (e.key === ' ') {
+            e.preventDefault();
+            
+            const cursorStart = this.selectionStart;
+            const textBefore = this.value.substring(0, cursorStart);
+            const textAfter = this.value.substring(this.selectionEnd);
+            
+            this.value = textBefore + ' ' + textAfter;
+            
+            // 移动光标到空格之后
+            const newCursorPos = cursorStart + 1;
+            this.setSelectionRange(newCursorPos, newCursorPos);
+            
+            // 重置韩文输入状态
+            koreanInput.reset();
+            
+            return;
+        }
+
+        // 忽略其他特殊键
         if (e.key.length > 1 && e.key !== 'Shift') return;
 
         const char = koreanInput.getCharacter(e.key, e.shiftKey);
@@ -282,22 +660,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const textBefore = this.value.substring(0, cursorPos);
             const textAfter = this.value.substring(this.selectionEnd);
             
-            // 如果当前位置有未完成的字符，替换它
-            let newText;
-            if (textBefore.length > 0) {
-                const lastChar = textBefore[textBefore.length - 1];
-                const decomposed = koreanInput.decomposeHangul(lastChar);
-                if (decomposed || koreanInput.isConsonant(lastChar) || koreanInput.isVowel(lastChar)) {
-                    newText = textBefore.slice(0, -1) + result + textAfter;
-                } else {
-                    newText = textBefore + result + textAfter;
-                }
-            } else {
-                newText = result + textAfter;
-            }
+            // 全新的韩文输入逻辑：智能光标插入处理
+            const insertResult = koreanInput.smartInsert(this.value, cursorPos, this.selectionEnd, result);
             
-            this.value = newText;
-            this.setSelectionRange(cursorPos + result.length, cursorPos + result.length);
+            // 更新文本和光标位置
+            this.value = insertResult.text;
+            this.setSelectionRange(insertResult.cursorPosition, insertResult.cursorPosition);
         }
     });
     
@@ -392,6 +760,24 @@ document.addEventListener('DOMContentLoaded', function() {
         textarea.focus();
     });
 
+    // 保存文本功能
+    saveBtn.addEventListener('click', function() {
+        koreanInput.saveTextAsFile(textarea.value);
+        textarea.focus();
+    });
+
+    // 缩小字体功能
+    fontSmallerBtn.addEventListener('click', function() {
+        koreanInput.decreaseFontSize();
+        textarea.focus();
+    });
+
+    // 放大字体功能
+    fontLargerBtn.addEventListener('click', function() {
+        koreanInput.increaseFontSize();
+        textarea.focus();
+    });
+    
     // 点击事件重置状态和同步光标
     textarea.addEventListener('click', function() {
         koreanInput.reset();

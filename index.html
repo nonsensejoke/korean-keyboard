@@ -1,10 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Korean Keyboard</title>
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- 防缓存META标签 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- 带版本戳的样式表 -->
+    <link rel="stylesheet" href="style.css?v=20250802">
 </head>
 <body>
     <!-- 语言切换器 -->
@@ -13,20 +20,23 @@
     </div>
 
     <div class="container">
-        <h1>한글 입력 테스트</h1>
+        <h1>Korean Input Test</h1>
         
         <!-- 说明文字移动到这里 -->
         <div class="info">
-            <p>영문 키보드로 타이핑하면 자동으로 한글로 변환됩니다.</p>
-            <p>Shift를 눌러 더 많은 한글 문자를 입력할 수 있습니다.</p>
+            <p>Type with English keyboard and it will automatically convert to Korean.</p>
+            <p>Hold Shift to input more Korean characters.</p>
         </div>
         
         <div class="input-section">
-            <textarea id="koreanInput" placeholder="영문으로 타이핑하면 한글로 변환됩니다..."></textarea>
+            <textarea id="koreanInput" placeholder="Type in English and it will convert to Korean..."></textarea>
         </div>
         <div class="button-section">
-            <button id="copyBtn">복사</button>
-            <button id="clearBtn">지우기</button>
+            <button id="copyBtn">Copy</button>
+            <button id="clearBtn">Clear</button>
+            <button id="saveBtn">Save Text</button>
+            <button id="fontSmallerBtn" title="Smaller Text">-</button>
+            <button id="fontLargerBtn" title="Larger Text">+</button>
         </div>
         
         <!-- 虚拟键盘区域 - 移除标题和控制 -->
@@ -37,9 +47,10 @@
         </div>
     </div>
 
-    <script src="i18n.js"></script>
-    <script src="virtual-keyboard.js"></script>
-    <script src="korean-input.js"></script>
+    <!-- 带版本戳的JavaScript文件 -->
+    <script src="i18n.js?v=20250802"></script>
+    <script src="virtual-keyboard.js?v=20250802"></script>
+    <script src="korean-input.js?v=20250802"></script>
 
     <footer class="site-footer">
         <a href="https://github.com/nonsensejoke/korean-keyboard" target="_blank" rel="noopener noreferrer">

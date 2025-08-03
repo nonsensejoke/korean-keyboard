@@ -418,8 +418,13 @@ class VirtualKeyboard {
             // 更新文本
             textarea.value = newText;
             
-            // 重置韩文输入状态
-            this.koreanInput.reset();
+            // 基于虚拟光标位置智能恢复韩文输入状态
+            if (this.virtualCursorPosition > 0) {
+                const charBeforeCursor = newText[this.virtualCursorPosition - 1];
+                this.koreanInput.restoreStateFromCharacter(charBeforeCursor);
+            } else {
+                this.koreanInput.reset();
+            }
         }
     }
     
