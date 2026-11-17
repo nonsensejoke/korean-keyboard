@@ -6,7 +6,7 @@ A web-based Korean input tool that allows users to type in Korean using an Engli
 
 ## Live Demo
 
-You can try the live version here: [https://korean-keyboard.1tlt1.com/](https://korean-keyboard.1tlt1.com/)
+You can try the live version here: https://nonsensejoke.github.io/tools/korean-keyboard/
 
 
 ![Korean Keyboard Screenshot](doc/images/snapshot-1.png)
